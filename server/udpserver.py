@@ -40,8 +40,7 @@ class UdpServer(threading.Thread):
         # send back all available client except the requesting client
         for iaddr in self.client_list:
             if iaddr != addr:
-                response += str(iaddr[0]) + ' ' + str(iaddr[1]) + ' ' + \
-                        self.client_list[iaddr]['name'] + ';'
+                response += str(self.client_list[iaddr]['name'] + ';')
         response = response[: -1]
         self.sock.sendto(bytes(response, 'UTF-8'), addr)
         
