@@ -23,4 +23,4 @@ def init_client():
     
 if __name__ == '__main__':
     init_client()
-    input()
+    #input()

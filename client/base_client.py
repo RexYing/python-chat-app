@@ -33,43 +33,49 @@ class ChatClient(threading.Thread):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         
     def run(self):
-        network_thread = threading.Thread(target=self.start_network)
+        network_thread = threading.Thread(target=self.start_conn_server)
         network_thread.daemon = True
         network_thread.start()
         self.startUI()
-        
-    '''
-    UI thread for client; blocking
-    '''
+    
     def startUI(self):
+        '''
+        UI thread for client; blocking
+        '''
         self.root = Tk()
-        peer_frame = Frame(self.root)
-        peer_frame.pack(side=RIGHT)
-        
-        self.peer_label_var = StringVar(value='Looking for peers...')
-        self.peer_label = Label(self.root, textvariable=self.peer_label_var)
-        self.peer_label.pack()
-        update_thread = threading.Timer(1, self.update_peer)
-        update_thread.start()
+        self.draw_peer_frame()
         
         self.root.mainloop()
         self.terminate()
         # self.root.destroy()
         
-    def update_peer(self):
-        temp = ''
-        for peer in self.available_peers:
-            temp += peer + '\n'
-        self.peer_label_var.set(temp);
-        # re-register timer
-        update_thread = threading.Timer(1, self.update_peer)
-        update_thread.start()
-        self.update_peers_event.set()
+    def draw_peer_frame(self):
+        peer_frame = Frame(self.root)
+        peer_frame.grid(row=0, column=1, columnspan=1)
+        title_label = Label(peer_frame, text='All available peers:', fg='red', font=("Helvetica", 16))
+        title_label.grid(row=0)
         
-    '''
-    a separate thread for running networking tasks in background
-    '''
-    def start_network(self):
+        self.peer_label_var = StringVar(value='Looking for peers...')
+        self.peer_label = Label(peer_frame, textvariable=self.peer_label_var)
+        self.peer_label.grid(row=1)
+        update_thread = threading.Timer(1, self.update_peer)
+        update_thread.daemon = True
+        update_thread.start()
+        
+    def update_peer(self):
+        while True:
+            temp = ''
+            for peer in self.available_peers:
+                temp += peer + '\n'
+            self.peer_label_var.set(temp);
+            # this event causes the client to fetch peer info from server
+            self.update_peers_event.set()
+            time.sleep(1)
+        
+    def start_conn_server(self):
+        '''
+        a separate thread for running networking tasks in background
+        '''
         while True:
             self.update_peers_event.wait()
             # send request
