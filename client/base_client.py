@@ -24,6 +24,8 @@ class ChatClient(threading.Thread):
         self.threadID = threadID
         self.name = name
         self.initsocket(ip, port)
+        self.available_peers = []
+        self.update_peers_event = threading.Event()
 
     def initsocket(self, ip, port):
         self.server_addr = (ip, port)
@@ -31,8 +33,8 @@ class ChatClient(threading.Thread):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         
     def run(self):
-        ui_thread = threading.Thread(target=self.start_network)
-        ui_thread.start()
+        network_thread = threading.Thread(target=self.start_network)
+        network_thread.start()
         self.startUI()
         
     '''
@@ -41,6 +43,8 @@ class ChatClient(threading.Thread):
     def startUI(self):
         self.root = Tk()
         self.root.mainloop()
+        self.terminate()
+        self.root.destroy()
         
     '''
     a separate thread for running networking tasks in background
@@ -51,13 +55,19 @@ class ChatClient(threading.Thread):
         request = self.name + ' ls'
         self.sock.sendto(bytes(request, 'UTF-8'), self.server_addr)
         # receive list of other clients
-        peerinfo, addr = self.sock.recvfrom(self.MAX_LENGTH)
+        peerinfo = self.sock.recvfrom(self.MAX_LENGTH)[0]
         peerinfo = peerinfo.decode('UTF-8').split(';')
+        self.available_peers = []
         for peer_str in peerinfo:
-            print('Client ', self.name, ': received ', peer_str)
-        #
-        #self.terminate()
+            peer_str.strip()
+            self.available_peers.append(peer_str)
+            print('Client ', self.name, ': received ', 'No peers' if not peer_str else peer_str);
+            # notify GUI to update available peers
+            self.update_peers_event.set()
+        
 
     def terminate(self):
-        print('client closing')
+        # Tell server that this client terminates
+        request = self.name + ' exit'
+        self.sock.sendto(bytes(request, 'UTF-8'), self.server_addr)
         self.sock.close()        

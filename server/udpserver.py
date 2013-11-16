@@ -34,22 +34,35 @@ class UdpServer(threading.Thread):
         
         self.sock.bind((self.host, self.port))
         
+    def ls(self, addr):
+        response = ''
+        print(self.client_list)
+        # send back all available client except the requesting client
+        for iaddr in self.client_list:
+            if iaddr != addr:
+                response += str(iaddr[0]) + ' ' + str(iaddr[1]) + ' ' + \
+                        self.client_list[iaddr]['name'] + ';'
+        response = response[: -1]
+        self.sock.sendto(bytes(response, 'UTF-8'), addr)
+        
+    def client_exit(self, addr):
+        # exclude from client_list
+        self.client_list.pop(addr)
+        
     def run(self):
         print('Server: ready...')
+
         while True:
             request, addr = self.sock.recvfrom(self.MAX_LENGTH)
             req_str = request.decode('UTF-8')
             print('Server: received: ', req_str, addr)
             info = req_str.split()
-            self.client_list[addr] = {'name': info[0], 'request': info[1]}
-            # send back all available client except the requesting client
-            response = ''
-            for iaddr in self.client_list:
-                if iaddr != addr:
-                    response += str(iaddr[0]) + ' ' + str(iaddr[1]) + ' ' + \
-                            self.client_list[iaddr]['name'] + ';'
-            response = response[: -1]
-            self.sock.sendto(bytes(response, 'UTF-8'), addr)
+            self.client_list[addr] = {'name': info[0]}
+            handle = {   
+                'ls': self.ls,
+                'exit': self.client_exit
+                }.get(info[1])
+            handle(addr)
         
     def terminate(self):
         self.sock.close()
