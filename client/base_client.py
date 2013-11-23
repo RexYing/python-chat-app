@@ -5,6 +5,8 @@ Created on Nov 10, 2013
 '''
 
 from tkinter import *
+from client.chatgui import ChatGui
+from client.gradient_frame import GradientFrame
 import socket
 import threading
 import time
@@ -44,6 +46,7 @@ class ChatClient(threading.Thread):
         '''
         self.root = Tk()
         self.draw_peer_frame()
+        self.draw_chat_frame()
         
         self.root.mainloop()
         self.terminate()
@@ -61,6 +64,14 @@ class ChatClient(threading.Thread):
         update_thread = threading.Timer(1, self.update_peer)
         update_thread.daemon = True
         update_thread.start()
+        
+    def draw_chat_frame(self):
+        #self.root.wm_overrideredirect(True)
+        #chat_frame = Frame(self.root, width=160, height=250, bg = '#99CCFF')
+        chat_frame = GradientFrame(self.root)
+        chat_frame.grid(row=0, column=0, columnspan=1)
+        gui = ChatGui(chat_frame)
+        gui.createTextWindow()
         
     def update_peer(self):
         while True:
