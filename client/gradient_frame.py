@@ -10,8 +10,9 @@ class GradientFrame(tkinter.Canvas):
     '''
     A gradient frame which uses a canvas to draw the background
     '''
-    def __init__(self, parent, color1='#CCFFFF', color2='#FFFFFF', direction='horizontal', borderwidth=1, relief="flat"):
-        tkinter.Canvas.__init__(self, parent, borderwidth=borderwidth, relief=relief)
+    def __init__(self, parent=None, width=20, height=10, yscrollcommand=None,
+                 color1='#CCFFFF', color2='#FFFFFF', direction='horizontal', borderwidth=0, relief="flat"):
+        tkinter.Canvas.__init__(self, parent, width=width, height=height, borderwidth=borderwidth, relief=relief)
         self._color1 = color1
         self._color2 = color2
         self.direction = direction

@@ -5,10 +5,11 @@ Created on Nov 23, 2013
 '''
 
 from tkinter import *
+from client.gradient_frame import GradientFrame
 
 class ChatGui(object):
     '''
-    GUI for chat with another client
+    GUI for chatting with another client
     '''
 
 
@@ -16,7 +17,30 @@ class ChatGui(object):
         '''
         Constructor
         '''
-        self.master  = master;
+        self.master = master;
         
-    def createTextWindow(self):
-        self.display_text = Text(self.master)
+    def create_text_display(self):
+        display = Frame(self.master)
+        display.pack(side='top')
+        scrollbar = Scrollbar(display, relief='flat')
+        self.text_display = GradientFrame(display, width=250, height=360, yscrollcommand=scrollbar.set,
+                    borderwidth=0)
+        # initial scroll region
+        self.text_display.config(scrollregion=self.text_display.bbox(ALL))
+        scrollbar.config(command=self.text_display.yview)
+        
+        # text input area
+        textinput = Text(self.master, width=36, height=10, wrap='word')
+        textinput.pack(side='bottom')
+        textinput.insert(END, 'Please type')
+        
+        # packing
+        scrollbar.pack(side='right', fill='y')
+        self.text_display.pack(side='left', fill='both', expand=True)
+        textinput.pack(side='bottom', fill='both', expand=True)
+
+        initmsgbox = GradientFrame(width=40, height=26, color1='#99FF99', color2='white', borderwidth=0)
+        initmsgbox.create_text(2, 13, anchor='w', text='Hello')
+        self.text_display.create_window(5, 20, width=40, height=26, anchor='w', window=initmsgbox)
+        
+        
