@@ -5,6 +5,7 @@ Created on Nov 10, 2013
 '''
 
 from tkinter import *
+import tkinter.font as tkfont
 from client.chatgui import ChatGui
 
 import socket
@@ -55,12 +56,21 @@ class ChatClient(threading.Thread):
     def draw_peer_frame(self):
         peer_frame = Frame(self.root)
         peer_frame.grid(row=0, column=1, columnspan=1)
-        title_label = Label(peer_frame, text='All available peers:', fg='red', font=("Helvetica", 16))
+        title_font = tkfont.Font(family='Times', size=16, weight='bold')
+        title_label = Label(peer_frame, text='All available peers:', fg='black', font=title_font)
         title_label.grid(row=0)
         
-        self.peer_label_var = StringVar(value='Looking for peers...')
+        self.peer_label_var = StringVar()
         self.peer_label = Label(peer_frame, textvariable=self.peer_label_var)
         self.peer_label.grid(row=1)
+        
+        label_font = tkfont.Font(family='Times', size=14)
+        self.peerlist = Listbox(peer_frame, fg='#6666FF', font=label_font, relief='flat')
+        self.peerlist.grid(row=2)
+        
+        chat_button = Button(peer_frame, text='Start Chat!')
+        chat_button.grid(row=3)
+        
         update_thread = threading.Timer(1, self.update_peer)
         update_thread.daemon = True
         update_thread.start()
@@ -74,10 +84,22 @@ class ChatClient(threading.Thread):
         
     def update_peer(self):
         while True:
-            temp = ''
+            items = [int(x) for x in self.peerlist.curselection()]
+            if len(items) > 0:
+                selected_item = self.peerlist.get(items[0])
+            else:
+                selected_item = None
+            
+            self.peerlist.delete(0, END)
             for peer in self.available_peers:
-                temp += peer + '\n'
-            self.peer_label_var.set(temp);
+                self.peerlist.insert(END, peer)
+                
+            # recover the selection that was deleted by the delete method
+            if selected_item:
+                ind = self.available_peers.index(selected_item)
+                self.peerlist.activate(ind)
+                self.peerlist.select_set(ind)
+
             # this event causes the client to fetch peer info from server
             self.update_peers_event.set()
             time.sleep(1)
