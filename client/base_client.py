@@ -7,6 +7,7 @@ Created on Nov 10, 2013
 from tkinter import *
 import tkinter.font as tkfont
 from client.chatgui import ChatGui
+from client.startup_window import StartupGui
 
 import socket
 import threading
@@ -45,6 +46,10 @@ class ChatClient(threading.Thread):
         '''
         UI thread for client; blocking
         '''
+        self.root = Tk()
+        
+        startup_gui = StartupGui(self.root)
+        
         self.root = Tk()
         self.draw_peer_frame()
         self.draw_chat_frame()
