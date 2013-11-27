@@ -4,7 +4,8 @@ Created on Nov 23, 2013
 @author: Rex
 '''
 
-from tkinter import *
+import tkinter
+from tkinter import ttk
 from client.gradient_frame import GradientFrame
 
 class ChatGui(object):
@@ -20,19 +21,19 @@ class ChatGui(object):
         self.master = master;
         
     def create_text_display(self):
-        display = Frame(self.master)
+        display = ttk.Frame(self.master)
         display.pack(side='top')
-        scrollbar = Scrollbar(display, relief='flat')
+        scrollbar = ttk.Scrollbar(display)
         self.text_display = GradientFrame(display, width=250, height=360, yscrollcommand=scrollbar.set,
                     borderwidth=0)
         # initial scroll region
-        self.text_display.config(scrollregion=self.text_display.bbox(ALL))
+        self.text_display.config(scrollregion=self.text_display.bbox(tkinter.ALL))
         scrollbar.config(command=self.text_display.yview)
         
         # text input area
-        textinput = Text(self.master, width=36, height=10, wrap='word')
+        textinput = tkinter.Text(self.master, width=36, height=10, wrap='word')
         textinput.pack(side='bottom')
-        textinput.insert(END, 'Please type')
+        textinput.insert(tkinter.END, 'Please type')
         
         # packing
         scrollbar.pack(side='right', fill='y')

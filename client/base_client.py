@@ -4,8 +4,9 @@ Created on Nov 10, 2013
 @author: Rex
 '''
 
-from tkinter import *
+import tkinter
 import tkinter.font as tkfont
+from tkinter import ttk
 from client.chatgui import ChatGui
 from client.startup_window import StartupGui
 
@@ -46,11 +47,12 @@ class ChatClient(threading.Thread):
         '''
         UI thread for client; blocking
         '''
-        self.root = Tk()
         
-        startup_gui = StartupGui(self.root)
+        #self.root = Tk()
         
-        self.root = Tk()
+        #startup_gui = StartupGui(self.root)
+        
+        self.root = tkinter.Tk()
         self.draw_peer_frame()
         self.draw_chat_frame()
         
@@ -59,21 +61,21 @@ class ChatClient(threading.Thread):
         # self.root.destroy()
         
     def draw_peer_frame(self):
-        peer_frame = Frame(self.root)
+        peer_frame = tkinter.Frame(self.root)
         peer_frame.grid(row=0, column=1, columnspan=1)
         title_font = tkfont.Font(family='Times', size=16, weight='bold')
-        title_label = Label(peer_frame, text='All available peers:', fg='black', font=title_font)
+        title_label = tkinter.Label(peer_frame, text='All available peers:', fg='black', font=title_font)
         title_label.grid(row=0)
         
-        self.peer_label_var = StringVar()
-        self.peer_label = Label(peer_frame, textvariable=self.peer_label_var)
+        self.peer_label_var = tkinter.StringVar()
+        self.peer_label = tkinter.Label(peer_frame, textvariable=self.peer_label_var)
         self.peer_label.grid(row=1)
         
         label_font = tkfont.Font(family='Times', size=14)
-        self.peerlist = Listbox(peer_frame, fg='#6666FF', font=label_font, relief='flat')
+        self.peerlist = tkinter.Listbox(peer_frame, fg='#6666FF', font=label_font, relief='flat')
         self.peerlist.grid(row=2)
         
-        chat_button = Button(peer_frame, text='Start Chat!')
+        chat_button = ttk.Button(peer_frame, text='Start Chat!')
         chat_button.grid(row=3)
         
         update_thread = threading.Timer(1, self.update_peer)
@@ -81,7 +83,7 @@ class ChatClient(threading.Thread):
         update_thread.start()
         
     def draw_chat_frame(self):
-        chat_frame = Frame(self.root, bg = '#99CCFF')
+        chat_frame = tkinter.Frame(self.root, bg = '#99CCFF')
         chat_frame.grid(row=0, column=0, columnspan=1)
         gui = ChatGui(chat_frame)
         gui.create_text_display()
@@ -95,9 +97,9 @@ class ChatClient(threading.Thread):
             else:
                 selected_item = None
             
-            self.peerlist.delete(0, END)
+            self.peerlist.delete(0, tkinter.END)
             for peer in self.available_peers:
-                self.peerlist.insert(END, peer)
+                self.peerlist.insert(tkinter.END, peer)
                 
             # recover the selection that was deleted by the delete method
             if selected_item:

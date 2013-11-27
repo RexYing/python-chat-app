@@ -19,7 +19,7 @@ class StartupGui(object):
         callback: function to call when user is done
         '''
         
-        label = tkinter.Label(master, text='Your name: ')
+        label = tkinter.ttk.Label(master, text='Your name: ')
         name_entry = tkinter.Entry(master)
         name_entry.focus_set()
         button = tkinter.Button(master, text='OK', command=callback)
