@@ -9,6 +9,7 @@ import tkinter.font as tkfont
 from tkinter import ttk
 from client.chatgui import ChatGui
 from client.startup_window import StartupGui
+from client.chatnetwork import TcpServer
 
 import socket
 import threading
@@ -38,9 +39,15 @@ class ChatClient(threading.Thread):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         
     def run(self):
-        network_thread = threading.Thread(target=self.start_conn_server)
-        network_thread.daemon = True
-        network_thread.start()
+        query_server_thread = threading.Thread(target=self.start_conn_server)
+        query_server_thread.daemon = True
+        query_server_thread.start()
+        
+        tcpserver = TcpServer()
+        chat_thread = threading.Thread(target=tcpserver.start)
+        chat_thread.daemon = True
+        chat_thread.start()
+        
         self.startUI()
     
     def startUI(self):
@@ -51,7 +58,7 @@ class ChatClient(threading.Thread):
         #self.root = Tk()
         
         #startup_gui = StartupGui(self.root)
-        
+
         self.root = tkinter.Tk()
         self.draw_peer_frame()
         self.draw_chat_frame()
@@ -61,14 +68,14 @@ class ChatClient(threading.Thread):
         # self.root.destroy()
         
     def draw_peer_frame(self):
-        peer_frame = tkinter.Frame(self.root)
+        peer_frame = ttk.Frame(self.root)
         peer_frame.grid(row=0, column=1, columnspan=1)
         title_font = tkfont.Font(family='Times', size=16, weight='bold')
-        title_label = tkinter.Label(peer_frame, text='All available peers:', fg='black', font=title_font)
+        title_label = ttk.Label(peer_frame, text='All available peers:', font=title_font)
         title_label.grid(row=0)
         
         self.peer_label_var = tkinter.StringVar()
-        self.peer_label = tkinter.Label(peer_frame, textvariable=self.peer_label_var)
+        self.peer_label = ttk.Label(peer_frame, textvariable=self.peer_label_var)
         self.peer_label.grid(row=1)
         
         label_font = tkfont.Font(family='Times', size=14)
@@ -83,7 +90,8 @@ class ChatClient(threading.Thread):
         update_thread.start()
         
     def draw_chat_frame(self):
-        chat_frame = tkinter.Frame(self.root, bg = '#99CCFF')
+        #chat_frame = ttk.Frame(self.root, bg = '#99CCFF')
+        chat_frame = ttk.Frame(self.root)
         chat_frame.grid(row=0, column=0, columnspan=1)
         gui = ChatGui(chat_frame)
         gui.create_text_display()

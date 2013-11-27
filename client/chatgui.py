@@ -1,47 +1,70 @@
 '''
-Created on Nov 23, 2013
+Created on Nov 26, 2013
 
 @author: Rex
 '''
 
 import tkinter
 from tkinter import ttk
-from client.gradient_frame import GradientFrame
 
-class ChatGui(object):
+from abc import ABCMeta, abstractmethod
+
+class AbstractChatGui(object):
     '''
-    GUI for chatting with another client
+    classdocs
     '''
 
+    __metaclass__ = ABCMeta
 
     def __init__(self, master):
         '''
         Constructor
         '''
-        self.master = master;
+        self.master = master
+        
+    @abstractmethod
+    def create_text_display(self):
+        pass
+    
+    @abstractmethod
+    def add_text(self):
+        pass
+    
+    @abstractmethod
+    def reformat(self):
+        pass
+    
+    
+class ChatGui(AbstractChatGui):
+    '''
+    classdocs
+    '''
+
+    def __init__(self, master):
+        '''
+        Constructor
+        '''
+        super().__init__(master)
         
     def create_text_display(self):
         display = ttk.Frame(self.master)
         display.pack(side='top')
         scrollbar = ttk.Scrollbar(display)
-        self.text_display = GradientFrame(display, width=250, height=360, yscrollcommand=scrollbar.set,
-                    borderwidth=0)
-        # initial scroll region
-        self.text_display.config(scrollregion=self.text_display.bbox(tkinter.ALL))
+        self.text_display = tkinter.Text(display, width=45, height=36, yscrollcommand=scrollbar.set,
+                    wrap='word', borderwidth=0)
         scrollbar.config(command=self.text_display.yview)
         
         # text input area
-        textinput = tkinter.Text(self.master, width=36, height=10, wrap='word')
-        textinput.pack(side='bottom')
+        textinput = tkinter.Text(self.master, width=35, height=10, wrap='word')
         textinput.insert(tkinter.END, 'Please type')
         
-        # packing
+        # pack
         scrollbar.pack(side='right', fill='y')
         self.text_display.pack(side='left', fill='both', expand=True)
         textinput.pack(side='bottom', fill='both', expand=True)
 
-        initmsgbox = GradientFrame(width=40, height=26, color1='#99FF99', color2='white', borderwidth=0)
-        initmsgbox.create_text(2, 13, anchor='w', text='Hello')
-        self.text_display.create_window(5, 20, width=40, height=26, anchor='w', window=initmsgbox)
-        
-        
+    def add_text(self):
+        pass
+
+    def reformat(self):
+        pass
