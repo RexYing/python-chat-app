@@ -5,6 +5,7 @@ Created on Nov 27, 2013
 '''
 
 import socket
+import threading
 
 class TcpServer(object):
     '''
@@ -27,8 +28,18 @@ class TcpServer(object):
         while True:
             conn, addr = self.sock.accept()
             conn.recv(1024)
+            
+            # find a port that can be used
             pind = ports_used.index(False)
-            conn.send(str(pind + self.PORT + 1))
+            available_port = pind + self.PORT + 1
+            conn.send(str(available_port))
+            ports_used[pind] =True
+            
+            # start a TCP peer connection for that client
+            tcppeer = TcpPeer(available_port)
+            chat_thread = threading.Thread(target=tcppeer.start)
+            chat_thread.daemon = True
+            chat_thread.start()
             conn.close()
             
 class TcpPeer(object):

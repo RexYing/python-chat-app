@@ -8,7 +8,6 @@ import tkinter
 import tkinter.font as tkfont
 from tkinter import ttk
 from client.chatgui import ChatGui
-from client.startup_window import StartupGui
 from client.chatnetwork import TcpServer
 
 import socket
@@ -54,10 +53,6 @@ class ChatClient(threading.Thread):
         '''
         UI thread for client; blocking
         '''
-        
-        #self.root = Tk()
-        
-        #startup_gui = StartupGui(self.root)
 
         self.root = tkinter.Tk()
         self.draw_peer_frame()
