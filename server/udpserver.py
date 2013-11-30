@@ -17,14 +17,14 @@ class UdpServer(threading.Thread):
     
     client_list = {}
 
-    def __init__(self, threadID, name, ip, port):
+    def __init__(self, threadID, name, serverip, serverport):
         '''
         Constructor
         '''
         threading.Thread.__init__(self)
         self.threadID = threadID
         self.name = name
-        self.initsocket(ip, port)
+        self.initsocket(serverip, serverport)
         
     def initsocket(self, ip, port):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -34,19 +34,24 @@ class UdpServer(threading.Thread):
         
         self.sock.bind((self.host, self.port))
         
-    def ls(self, addr):
+    def ls(self, addr, info):
         response = ''
         print(self.client_list)
         # send back all available client except the requesting client
-        for iaddr in self.client_list:
-            if iaddr != addr:
-                response += str(iaddr[1]) + ' ' + str(self.client_list[iaddr]['name'] + ';')
+        for iname in self.client_list:
+            if iname != info[0]:
+                response += self.client_list[iname]['ip'] + ' ' + str(self.client_list[iname]['port']) + \
+                        ' ' + iname + ';'
         response = response[: -1]
         self.sock.sendto(bytes(response, 'UTF-8'), addr)
         
-    def client_exit(self, addr):
+    def login(self, addr, info):
+        # client ip and client's tcp port stored
+        self.client_list[info[0]] = {'ip': addr[0], 'port': info[2]}
+        
+    def client_exit(self, addr, info):
         # exclude from client_list
-        self.client_list.pop(addr)
+        self.client_list.pop(info[0])
         
     def run(self):
         print('Server: ready...')
@@ -56,12 +61,12 @@ class UdpServer(threading.Thread):
             req_str = request.decode('UTF-8')
             print('Server: received: ', req_str, addr)
             info = req_str.split()
-            self.client_list[addr] = {'name': info[0]}
             handle = {   
                 'ls': self.ls,
-                'exit': self.client_exit
+                'exit': self.client_exit,
+                'login': self.login
                 }.get(info[1])
-            handle(addr)
+            handle(addr, info)
         
     def terminate(self):
         self.sock.close()

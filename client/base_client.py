@@ -21,14 +21,14 @@ class ChatClient(threading.Thread):
 
     MAX_LENGTH = 1024
 
-    def __init__(self, threadID, name, ip, port):
+    def __init__(self, threadID, name, serverip, serverport):
         '''
         Constructor
         '''
         threading.Thread.__init__(self)
         self.threadID = threadID
         self.name = name
-        self.initsocket(ip, port)
+        self.initsocket(serverip, serverport)
         self.available_peers = []
         self.update_peers_event = threading.Event()
 
@@ -38,14 +38,15 @@ class ChatClient(threading.Thread):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         
     def run(self):
-        query_server_thread = threading.Thread(target=self.start_conn_server)
-        query_server_thread.daemon = True
-        query_server_thread.start()
-        
         tcpserver = TcpServer()
         chat_thread = threading.Thread(target=tcpserver.start)
         chat_thread.daemon = True
+        self.client_tcpport = tcpserver.getport()
         chat_thread.start()
+        
+        query_server_thread = threading.Thread(target=self.start_conn_server)
+        query_server_thread.daemon = True
+        query_server_thread.start()
         
         self.startUI()
     
@@ -118,6 +119,8 @@ class ChatClient(threading.Thread):
         '''
         a separate thread for running networking tasks in background
         '''
+        request = self.name + ' login ' + str(self.client_tcpport)
+        self.sock.sendto(bytes(request, 'UTF-8'), self.server_addr)
         while True:
             self.update_peers_event.wait()
             # send request
