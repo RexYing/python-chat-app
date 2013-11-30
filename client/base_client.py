@@ -8,7 +8,7 @@ import tkinter
 import tkinter.font as tkfont
 from tkinter import ttk
 from client.chatgui import ChatGui
-from client.chatnetwork import TcpServer
+import client.chatnetwork as chatnetwork
 
 import socket
 import threading
@@ -38,11 +38,10 @@ class ChatClient(threading.Thread):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         
     def run(self):
-        tcpserver = TcpServer()
-        chat_thread = threading.Thread(target=tcpserver.start)
-        chat_thread.daemon = True
+        tcpserver = chatnetwork.TcpServer()
+        tcpserver.daemon = True
         self.client_tcpport = tcpserver.getport()
-        chat_thread.start()
+        tcpserver.start()
         
         query_server_thread = threading.Thread(target=self.start_conn_server)
         query_server_thread.daemon = True
@@ -78,12 +77,20 @@ class ChatClient(threading.Thread):
         self.peerlist = tkinter.Listbox(peer_frame, fg='#6666FF', font=label_font, relief='flat')
         self.peerlist.grid(row=2)
         
-        chat_button = ttk.Button(peer_frame, text='Start Chat!')
+        chat_button = ttk.Button(peer_frame, text='Start Chat!', command=self.request_chat)
         chat_button.grid(row=3)
         
         update_thread = threading.Timer(1, self.update_peer)
         update_thread.daemon = True
         update_thread.start()
+        
+    def request_chat(self):
+        items = [int(x) for x in self.peerlist.curselection()]
+        name = self.peerlist.get(items[0])
+        ip, port = self.available_peers[name]
+        tcpclient = chatnetwork.TcpPeerClient(ip, port)
+        tcpclient.daemon = True
+        tcpclient.start()
         
     def draw_chat_frame(self):
         #chat_frame = ttk.Frame(self.root, bg = '#99CCFF')
@@ -91,7 +98,7 @@ class ChatClient(threading.Thread):
         chat_frame.grid(row=0, column=0, columnspan=1)
         gui = ChatGui(chat_frame)
         gui.create_text_display()
-        
+        gui.add_text('Hello ' + self.name + '\n')
         
     def update_peer(self):
         while True:
@@ -103,17 +110,17 @@ class ChatClient(threading.Thread):
             
             self.peerlist.delete(0, tkinter.END)
             for peer in self.available_peers:
+                # include name in the list
                 self.peerlist.insert(tkinter.END, peer)
+                # recover the selection that was deleted by the delete method
+                if (peer == selected_item):
+                    self.peerlist.activate(tkinter.END)
+                    self.peerlist.select_set(tkinter.END)
                 
-            # recover the selection that was deleted by the delete method
-            if selected_item:
-                ind = self.available_peers.index(selected_item)
-                self.peerlist.activate(ind)
-                self.peerlist.select_set(ind)
 
             # this event causes the client to fetch peer info from server
             self.update_peers_event.set()
-            time.sleep(1)
+            time.sleep(2)
         
     def start_conn_server(self):
         '''
@@ -129,13 +136,16 @@ class ChatClient(threading.Thread):
             # receive list of other clients
             peerinfo = self.sock.recvfrom(self.MAX_LENGTH)[0]
             peerinfo = peerinfo.decode('UTF-8').split(';')
-            self.available_peers = []
+            self.available_peers = {}
+            self.update_peers_event.clear()
             for peer_str in peerinfo:
-                peer_str.strip()
-                self.available_peers.append(peer_str)
-                print('Client ', self.name, ': received ', 'No peers' if not peer_str else peer_str);
+                # peerinfo contains fields: ip, port and name
+                info = peer_str.strip().split()
+                if (len(info) == 0):
+                    continue
+                self.available_peers[info[2]] = ((info[0], info[1]))
                 # notify GUI to update available peers
-                self.update_peers_event.clear()
+                
 
     def terminate(self):
         # Tell server that this client terminates

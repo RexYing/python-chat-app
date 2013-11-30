@@ -27,19 +27,26 @@ class AbstractChatGui(object):
         pass
     
     @abstractmethod
-    def add_text(self):
+    def add_text(self, text):
         pass
     
     @abstractmethod
     def reformat(self):
         pass
     
+def overrides(interface_class):
+    def overrider(method):
+        assert(method.__name__ in dir(interface_class))
+        return method
+    return overrider
     
 class ChatGui(AbstractChatGui):
+    
     '''
     classdocs
     '''
 
+    @overrides(AbstractChatGui)
     def __init__(self, master):
         '''
         Constructor
@@ -63,8 +70,9 @@ class ChatGui(AbstractChatGui):
         self.text_display.pack(side='left', fill='both', expand=True)
         textinput.pack(side='bottom', fill='both', expand=True)
 
-    def add_text(self):
-        pass
+    def add_text(self, text):
+        self.text_display.insert(tkinter.END, text)
 
     def reformat(self):
         pass
+    
