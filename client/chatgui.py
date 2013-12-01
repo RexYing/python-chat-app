@@ -55,6 +55,7 @@ class ChatGui(AbstractChatGui):
         self.client = client
         
     def create_text_display(self):
+        
         display = ttk.Frame(self.master)
         display.pack(side='top')
         scrollbar = ttk.Scrollbar(display)
@@ -63,14 +64,14 @@ class ChatGui(AbstractChatGui):
         scrollbar.config(command=self.text_display.yview)
         
         # text input area
-        self.textinput = tkinter.Text(self.master, width=35, height=10, wrap='word')
+        self.textinput = tkinter.Text(display, width=35, height=10, wrap='word')
         self.textinput.insert(tkinter.END, 'Please type')
         self.textinput.bind('<Control_L><Return>', self.finishmsg)
         
         # pack
+        self.textinput.pack(side='bottom', fill='both', expand=True)
         scrollbar.pack(side='right', fill='y')
         self.text_display.pack(side='left', fill='both', expand=True)
-        self.textinput.pack(side='bottom', fill='both', expand=True)
         
     def finishmsg(self, event):
         textstr = self.textinput.get(1.0, tkinter.END)
