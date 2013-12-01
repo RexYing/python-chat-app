@@ -55,21 +55,27 @@ class ChatGui(AbstractChatGui):
         self.client = client
         self.notebook = ttk.Notebook(self.master)
         self.notebook.pack()
+        # maps tab_id to ChatDisplay instance
         self.tabs = {}
+        # map user_id to tab_id
+        self.id_to_tab_id = {}
         
     def create_text_display(self):
-        self.tabs['init'] = ChatDisplay(self.notebook, self.finishmsg)
+        tab = ChatDisplay(self.notebook, self.finishmsg)
         
         # All text display windows (for different peers) 
         # are to be added into the notebook
-        self.notebook.add(self.tabs['init'].getframe(), text='Welcome')
-        
+        self.notebook.add(tab.getframe(), text='Welcome')
+        self.tabs[self.notebook.select()] = tab
+        self.id_to_tab_id[0] = self.notebook.tabs()[self.notebook.index('end') - 1]
+
     def finishmsg(self, event):
-        textstr = self.tabs['init'].poll()
+        textstr = self.tabs[self.notebook.select()].poll()
         self.client.sendmsg(textstr)
 
-    def add_text(self, text, name='init'):
-        self.tabs[name].add_text(text)
+    def add_text(self, text, user_id=0):
+        tab_id = self.id_to_tab_id[user_id]
+        self.tabs[tab_id].add_text(text)
 
     def reformat(self):
         pass
