@@ -47,11 +47,12 @@ class ChatGui(AbstractChatGui):
     '''
 
     @overrides(AbstractChatGui)
-    def __init__(self, master):
+    def __init__(self, master, client):
         '''
         Constructor
         '''
         super().__init__(master)
+        self.client = client
         
     def create_text_display(self):
         display = ttk.Frame(self.master)
@@ -62,13 +63,20 @@ class ChatGui(AbstractChatGui):
         scrollbar.config(command=self.text_display.yview)
         
         # text input area
-        textinput = tkinter.Text(self.master, width=35, height=10, wrap='word')
-        textinput.insert(tkinter.END, 'Please type')
+        self.textinput = tkinter.Text(self.master, width=35, height=10, wrap='word')
+        self.textinput.insert(tkinter.END, 'Please type')
+        self.textinput.bind('<Control_L><Return>', self.finishmsg)
         
         # pack
         scrollbar.pack(side='right', fill='y')
         self.text_display.pack(side='left', fill='both', expand=True)
-        textinput.pack(side='bottom', fill='both', expand=True)
+        self.textinput.pack(side='bottom', fill='both', expand=True)
+        
+    def finishmsg(self, event):
+        textstr = self.textinput.get(1.0, tkinter.END)
+        self.add_text(textstr)
+        self.textinput.delete(1.0, tkinter.END)
+        self.client.sendmsg(textstr)
 
     def add_text(self, text):
         self.text_display.insert(tkinter.END, text)

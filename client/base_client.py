@@ -86,17 +86,15 @@ class ChatClient(threading.Thread):
         
     def request_chat(self):
         items = [int(x) for x in self.peerlist.curselection()]
-        name = self.peerlist.get(items[0])
-        ip, port = self.available_peers[name]
-        tcpclient = chatnetwork.TcpPeerClient(ip, port, self.name)
-        tcpclient.daemon = True
-        tcpclient.start()
+        self.conn_manager.setactivedest(self.peerlist.get(items[0]))
+        ip, port = self.available_peers[self.conn_manager.getactivedest()]
+        self.conn_manager.add_peer_client(self.name, ip, port)
         
     def draw_chat_frame(self):
         #chat_frame = ttk.Frame(self.root, bg = '#99CCFF')
         chat_frame = ttk.Frame(self.root)
         chat_frame.grid(row=0, column=0, columnspan=1)
-        gui = ChatGui(chat_frame)
+        gui = ChatGui(chat_frame, self)
         gui.create_text_display()
         gui.add_text('Hello ' + self.name + '\n')
         
@@ -105,6 +103,12 @@ class ChatClient(threading.Thread):
         dispmanager = chatnetwork.DisplayManager(self.conn_manager, gui)
         dispmanager.daemon = True
         dispmanager.start()
+        
+    def sendmsg(self, text):
+        '''
+        Relay text obtained from GUI to network
+        '''
+        self.conn_manager.sendmsg(text)
         
     def update_peer(self):
         while True:

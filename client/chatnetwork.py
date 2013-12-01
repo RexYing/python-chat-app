@@ -17,12 +17,12 @@ class ConnectionManager(threading.Thread):
     # [PORT, PORT + 9] ports reserved for p2p chat
     PORT = 14285
     
-    # dict {peer name: tcppeer instance)
+    # dict {peer name: tcppeer instance connecting to that peer)
     tcppeers = {}
     
     '''
     TCP server for accepting chat request
-    spawn a new TcpPeer for each tcp client that requests connection
+    spawn a new Peer for each tcp client that requests connection
     The app is a p2p chatting app, so each client has one ConnectionManager running
     '''
     def __init__(self):
@@ -50,12 +50,24 @@ class ConnectionManager(threading.Thread):
             ports_used[pind] = True
             
             # start a TCP peer connection for that client
-            tcppeer = TcpPeer(available_port)
+            tcppeer = Peer(available_port)
             self.tcppeers[name] = tcppeer
             chat_thread = threading.Thread(target=tcppeer.start)
             chat_thread.daemon = True
             chat_thread.start()
             conn.close()
+            
+            #switch the active dest to the recently connected one
+            self.active_dest = name
+            
+    def add_peer_client(self, myname, destip, destport):
+        '''
+        add a PeerClient intance connecting to self.active_dest
+        '''
+        tcpclient = PeerClient(destip, destport, myname)
+        self.tcppeers[self.active_dest] = tcpclient
+        tcpclient.daemon = True
+        tcpclient.start()
             
     def getport(self):
         return self.port
@@ -71,6 +83,19 @@ class ConnectionManager(threading.Thread):
             if len(msg) > 0:
                 result[name] = msg
         return result
+    
+    def sendmsg(self, text):
+        '''
+        Send new messages that user typed in to a peer specified by its name
+        '''
+        self.tcppeers[self.active_dest].send(text)
+        
+    def setactivedest(self, destname):
+        self.active_dest = destname
+        
+    def getactivedest(self):
+        return self.active_dest
+        
 
 class DisplayManager(threading.Thread):
     '''
@@ -93,13 +118,27 @@ class DisplayManager(threading.Thread):
                     self.wins.add_text(newmsg[name])
             time.sleep(1)
             
+class AbstractPeer(threading.Thread):
+    
+    recvmsgs = queue.Queue()
+    
+    def __init__(self):
+        super().__init__()
+    
+    def popmsg(self):
+        msg = ''
+        while True:
+            try:
+                msg += self.recvmsgs.get_nowait()
+            except queue.Empty:
+                break;
+        return msg
             
-class TcpPeer(threading.Thread):
+class Peer(AbstractPeer):
     '''
     A TCP host specifically for chatting with one client
-    Each client can have multiple TcpPeer instances running
+    Each client can have multiple Peer instances running
     '''
-    recvmsgs = queue.Queue()
     
     def __init__(self, serverport):
         super().__init__()
@@ -116,20 +155,14 @@ class TcpPeer(threading.Thread):
             msg = coding.decode(self.conn.recv(4096))
             if len(msg) > 0:
                 self.recvmsgs.put(msg, block=True, timeout=5)
-                print(msg)
             else:
                 time.sleep(0.5)
+                
+    def send(self, text):
+        self.conn.send(coding.encode(text))
+                
         
-    def popmsg(self):
-        msg = ''
-        while True:
-            try:
-                msg += self.recvmsgs.get_nowait()
-            except queue.Empty:
-                break;
-        return msg
-        
-class TcpPeerClient(threading.Thread):
+class PeerClient(AbstractPeer):
     '''
     connect to a tcp host for chatting
     '''
@@ -151,5 +184,15 @@ class TcpPeerClient(threading.Thread):
         self.init_request()
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((self.destip, self.destport))
-        self.sock.send(coding.encode('whatsup'))
+        #self.send('whatsup:)')
+        while True:
+            msg = coding.decode(self.sock.recv(4096))
+            if len(msg) > 0:
+                self.recvmsgs.put(msg, block=True, timeout=5)
+            else:
+                time.sleep(0.5)
+        
+    def send(self, text):
+        self.sock.send(coding.encode(text))
+        
         

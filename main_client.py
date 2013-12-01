@@ -4,8 +4,6 @@ Created on Nov 10, 2013
 @author: Rex
 '''
 
-import socket
-
 from client.startup_window import StartupGui   
 
 if __name__ == '__main__':
