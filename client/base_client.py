@@ -38,10 +38,10 @@ class ChatClient(threading.Thread):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         
     def run(self):
-        tcpserver = chatnetwork.TcpServer()
-        tcpserver.daemon = True
-        self.client_tcpport = tcpserver.getport()
-        tcpserver.start()
+        self.conn_manager = chatnetwork.ConnectionManager()
+        self.conn_manager.daemon = True
+        self.client_tcpport = self.conn_manager.getport()
+        self.conn_manager.start()
         
         query_server_thread = threading.Thread(target=self.start_conn_server)
         query_server_thread.daemon = True
@@ -88,7 +88,7 @@ class ChatClient(threading.Thread):
         items = [int(x) for x in self.peerlist.curselection()]
         name = self.peerlist.get(items[0])
         ip, port = self.available_peers[name]
-        tcpclient = chatnetwork.TcpPeerClient(ip, port)
+        tcpclient = chatnetwork.TcpPeerClient(ip, port, self.name)
         tcpclient.daemon = True
         tcpclient.start()
         
@@ -99,6 +99,12 @@ class ChatClient(threading.Thread):
         gui = ChatGui(chat_frame)
         gui.create_text_display()
         gui.add_text('Hello ' + self.name + '\n')
+        
+        # set display manager which periodically update all messages received
+        # from self.conn_manager to ChatGui instance
+        dispmanager = chatnetwork.DisplayManager(self.conn_manager, gui)
+        dispmanager.daemon = True
+        dispmanager.start()
         
     def update_peer(self):
         while True:
