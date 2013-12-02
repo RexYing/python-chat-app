@@ -123,6 +123,8 @@ class AbstractPeer(threading.Thread):
     
     def __init__(self):
         super().__init__()
+        self.num_msg = 0
+        self.total_rtt = 0
     
     def popmsg(self):
         msg = ''
@@ -132,6 +134,31 @@ class AbstractPeer(threading.Thread):
             except queue.Empty:
                 break;
         return msg
+    
+    def is_ack(self, text):
+        try:
+            if text.index('ACK') == 0:
+                return True
+        except ValueError:
+            pass
+        return False
+    
+    def get_rtt(self):
+        self.total_rtt += time.time() - self.starttime
+        self.num_msg += 1
+        return self.total_rtt / self.num_msg
+    
+    def parsemsg(self, msg):
+        if len(msg) > 0:
+            # check if this is ACK first
+            if self.is_ack(msg):
+                print('TCP rtt:', self.get_rtt())
+                return
+            self.recvmsgs.put(msg, block=True, timeout=5)
+            # send ACK
+            self.send('ACK ' + msg)
+        else:
+            time.sleep(0.5)
     
     def quit(self):
         pass
@@ -159,13 +186,12 @@ class Peer(AbstractPeer):
             except:
                 self.sock.close()
                 return
-            if len(msg) > 0:
-                self.recvmsgs.put(msg, block=True, timeout=5)
-            else:
-                time.sleep(0.5)
+            self.parsemsg(msg)
                 
     def send(self, text):
         try:
+            if not self.is_ack(text):
+                self.starttime = time.time()
             self.conn.send(coding.encode(text))
         except:
             return
@@ -204,13 +230,12 @@ class PeerClient(AbstractPeer):
             except:
                 self.sock.close()
                 return
-            if len(msg) > 0:
-                self.recvmsgs.put(msg, block=True, timeout=5)
-            else:
-                time.sleep(0.5)
+            self.parsemsg(msg)
         
     def send(self, text):
         try:
+            if not self.is_ack(text):
+                self.starttime = time.time()
             self.sock.send(coding.encode(text))
         except:
             return

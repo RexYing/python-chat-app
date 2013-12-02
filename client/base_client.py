@@ -125,7 +125,10 @@ class ChatClient(threading.Thread):
         
     def update_peer(self):
         while True:
-            items = [int(x) for x in self.peerlist.curselection()]
+            try:
+                items = [int(x) for x in self.peerlist.curselection()]
+            except tkinter.TclError:
+                items = []
             if len(items) > 0:
                 selected_item = self.peerlist.get(items[0])
             else:
@@ -151,13 +154,22 @@ class ChatClient(threading.Thread):
         '''
         request = self.name + ' login ' + str(self.client_tcpport)
         self.sock.sendto(bytes(request, 'UTF-8'), self.server_addr)
+        num_msg = 0
+        total_rtt = 0
         while True:
             self.update_peers_event.wait()
             # send request
             request = self.name + ' ls'
+            # calculate round trip time
+            starttime = time.time();
             self.sock.sendto(bytes(request, 'UTF-8'), self.server_addr)
             # receive list of other clients
             peerinfo = self.sock.recvfrom(self.MAX_LENGTH)[0]
+            
+            num_msg += 1
+            total_rtt += time.time() - starttime
+            print('UDP rtt:', total_rtt / num_msg)
+            
             peerinfo = peerinfo.decode('UTF-8').split(';')
             self.available_peers = {}
             self.update_peers_event.clear()
