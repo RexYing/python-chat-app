@@ -25,7 +25,7 @@ class ConnectionManager(threading.Thread):
     spawn a new Peer for each tcp client that requests connection
     The app is a p2p chatting app, so each client has one ConnectionManager running
     '''
-    def __init__(self):
+    def __init__(self, client=None):
         '''
         Constructor
         '''
@@ -36,6 +36,8 @@ class ConnectionManager(threading.Thread):
         self.sock.bind((self.ip, 0))
         self.port = self.sock.getsockname()[1]
         self.sock.listen(5)
+        # client has to support new tab callback
+        self.client = client
         
     def run(self):
         ports_used = [False] * 10
@@ -59,6 +61,7 @@ class ConnectionManager(threading.Thread):
             
             #switch the active dest to the recently connected one
             self.active_dest = name
+            #self.client.newtab(name)
             
     def add_peer_client(self, myname, destip, destport):
         '''
@@ -115,7 +118,7 @@ class DisplayManager(threading.Thread):
             newmsg = self.conn_manager.fetchmsg()
             if newmsg:
                 for name in newmsg:
-                    self.wins.add_text(newmsg[name])
+                    self.wins.add_text(newmsg[name], name)
             time.sleep(1)
             
 class AbstractPeer(threading.Thread):

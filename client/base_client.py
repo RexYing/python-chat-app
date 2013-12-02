@@ -38,7 +38,7 @@ class ChatClient(threading.Thread):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         
     def run(self):
-        self.conn_manager = chatnetwork.ConnectionManager()
+        self.conn_manager = chatnetwork.ConnectionManager(self)
         self.conn_manager.daemon = True
         self.client_tcpport = self.conn_manager.getport()
         self.conn_manager.start()
@@ -86,21 +86,27 @@ class ChatClient(threading.Thread):
         
     def request_chat(self):
         items = [int(x) for x in self.peerlist.curselection()]
-        self.conn_manager.setactivedest(self.peerlist.get(items[0]))
-        ip, port = self.available_peers[self.conn_manager.getactivedest()]
+        peerid = self.peerlist.get(items[0])
+        self.conn_manager.setactivedest(peerid)
+        ip, port = self.available_peers[peerid]
         self.conn_manager.add_peer_client(self.name, ip, port)
+        # add a tab for that guy
+        self.chatgui.addtab(peerid, show=True)
+        
+    def newtab(self, peerid):
+        self.chatgui.addtab(peerid, show=False)
         
     def draw_chat_frame(self):
         #chat_frame = ttk.Frame(self.root, bg = '#99CCFF')
         chat_frame = ttk.Frame(self.root)
         chat_frame.grid(row=0, column=0, columnspan=1)
-        gui = ChatGui(chat_frame, self)
-        gui.create_text_display()
-        gui.add_text('Hello ' + self.name + '\n')
+        self.chatgui = ChatGui(chat_frame, self)    
+        self.chatgui.create_text_display()
+        self.chatgui.add_text('Hello ' + self.name + '\n')
         
         # set display manager which periodically update all messages received
         # from self.conn_manager to ChatGui instance
-        dispmanager = chatnetwork.DisplayManager(self.conn_manager, gui)
+        dispmanager = chatnetwork.DisplayManager(self.conn_manager, self.chatgui)
         dispmanager.daemon = True
         dispmanager.start()
         

@@ -9,6 +9,8 @@ from tkinter import ttk
 
 from abc import ABCMeta, abstractmethod
 
+from client.text_ext import ReadOnlyText
+
 class AbstractChatGui(object):
     '''
     classdocs
@@ -68,14 +70,29 @@ class ChatGui(AbstractChatGui):
         self.notebook.add(tab.getframe(), text='Welcome')
         self.tabs[self.notebook.select()] = tab
         self.id_to_tab_id[0] = self.notebook.tabs()[self.notebook.index('end') - 1]
+        
+    def addtab(self, user_id, show=False):
+        tab = ChatDisplay(self.notebook, self.finishmsg)
+        self.notebook.add(tab.getframe(), text=user_id)
+        tab_id = self.notebook.tabs()[self.notebook.index('end') - 1]
+        self.tabs[tab_id] = tab
+        self.id_to_tab_id[user_id] = tab_id
+        if show:
+            self.notebook.select(tab_id)
 
     def finishmsg(self, event):
         textstr = self.tabs[self.notebook.select()].poll()
         self.client.sendmsg(textstr)
 
     def add_text(self, text, user_id=0):
+        '''
+        add text for user_id
+        '''
+        if not user_id in self.id_to_tab_id:
+            self.addtab(user_id, show=False)
         tab_id = self.id_to_tab_id[user_id]
         self.tabs[tab_id].add_text(text)
+            
 
     def reformat(self):
         pass
@@ -86,7 +103,7 @@ class ChatDisplay(object):
         self.display = ttk.Frame(master)
         self.display.pack(side='top')
         scrollbar = ttk.Scrollbar(self.display)
-        self.text_display = tkinter.Text(self.display, width=45, height=36, yscrollcommand=scrollbar.set,
+        self.text_display = ReadOnlyText(self.display, width=45, height=36, yscrollcommand=scrollbar.set,
                     wrap='word', borderwidth=0)
         scrollbar.config(command=self.text_display.yview)
         
