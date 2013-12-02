@@ -73,7 +73,10 @@ class ChatGui(AbstractChatGui):
         self.id_to_tab_id[0] = self.notebook.tabs()[self.notebook.index('end') - 1]
         
     def addtab(self, user_id, show=False):
-        tab = ChatDisplay(self.notebook, self.finishmsg)
+        '''
+        user_id: the id of the other peer that the user is chatting with
+        '''
+        tab = ChatDisplay(self.notebook, self.finishmsg, user_id)
         self.notebook.add(tab.getframe(), text=user_id)
         tab_id = self.notebook.tabs()[self.notebook.index('end') - 1]
         self.tabs[tab_id] = tab
@@ -103,7 +106,9 @@ class ChatGui(AbstractChatGui):
     
 class ChatDisplay(object):
     
-    def __init__(self, master, callback):
+    def __init__(self, master, callback, dest_user=None):
+        self.dest_user = dest_user
+        
         self.display = ttk.Frame(master)
         self.display.pack(side='top')
         scrollbar = ttk.Scrollbar(self.display)
@@ -124,11 +129,25 @@ class ChatDisplay(object):
     def getframe(self):
         return self.display
         
-    def add_text(self, text):
+    def add_text(self, text, mine=False):
+        text = text.strip(' \n')
+        if self.dest_user:
+            if mine:
+                author = 'I said:'
+            else:
+                author = self.dest_user + ' said:'
+            text = author + '\n' + text + '\n\n\n'
+        else:
+            # welcome messages do not have user_id
+            text = text + '\n\n'
         self.text_display.insert(tkinter.END, text)
         
     def poll(self):
+        '''
+        Return the text in its textinput
+        Also add the text to its own display window
+        '''
         textstr = self.textinput.get(1.0, tkinter.END)
-        self.add_text(textstr)
+        self.add_text(textstr, mine=True)
         self.textinput.delete(1.0, tkinter.END)
         return textstr
