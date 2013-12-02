@@ -88,13 +88,12 @@ class ChatClient(threading.Thread):
         items = [int(x) for x in self.peerlist.curselection()]
         peerid = self.peerlist.get(items[0])
         self.conn_manager.setactivedest(peerid)
-        ip, port = self.available_peers[peerid]
-        self.conn_manager.add_peer_client(self.name, ip, port)
+        if not peerid in self.conn_manager.tcppeers:
+            # connect if not already connected
+            ip, port = self.available_peers[peerid]
+            self.conn_manager.add_peer_client(self.name, ip, port)
         # add a tab for that guy
         self.chatgui.addtab(peerid, show=True)
-        
-    def newtab(self, peerid):
-        self.chatgui.addtab(peerid, show=False)
         
     def draw_chat_frame(self):
         #chat_frame = ttk.Frame(self.root, bg = '#99CCFF')

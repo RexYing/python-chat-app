@@ -14,9 +14,6 @@ from client import coding
 
 class ConnectionManager(threading.Thread):
     
-    # [PORT, PORT + 9] ports reserved for p2p chat
-    PORT = 14285
-    
     # dict {peer name: tcppeer instance connecting to that peer)
     tcppeers = {}
     
@@ -35,24 +32,18 @@ class ConnectionManager(threading.Thread):
         # bind to a random serverport between 1024 and 65536 that is available
         self.sock.bind((self.ip, 0))
         self.port = self.sock.getsockname()[1]
-        self.sock.listen(5)
+        self.sock.listen(10)
         # client has to support new tab callback
         self.client = client
         
     def run(self):
-        ports_used = [False] * 10
         while True:
             conn, addr = self.sock.accept()
             name = coding.decode(conn.recv(1024))
             
-            # find a port that can be used
-            pind = ports_used.index(False)
-            available_port = pind + self.PORT + 1
-            conn.send(coding.encode(str(available_port)))
-            ports_used[pind] = True
-            
             # start a TCP peer connection for that client
-            tcppeer = Peer(available_port)
+            tcppeer = Peer()
+            conn.send(coding.encode(str(tcppeer.getport())))
             self.tcppeers[name] = tcppeer
             chat_thread = threading.Thread(target=tcppeer.start)
             chat_thread.daemon = True
@@ -61,7 +52,6 @@ class ConnectionManager(threading.Thread):
             
             #switch the active dest to the recently connected one
             self.active_dest = name
-            #self.client.newtab(name)
             
     def add_peer_client(self, myname, destip, destport):
         '''
@@ -116,6 +106,7 @@ class DisplayManager(threading.Thread):
     def run(self):
         while True:
             newmsg = self.conn_manager.fetchmsg()
+            print(newmsg)
             if newmsg:
                 for name in newmsg:
                     self.wins.add_text(newmsg[name], name)
@@ -143,11 +134,11 @@ class Peer(AbstractPeer):
     Each client can have multiple Peer instances running
     '''
     
-    def __init__(self, serverport):
+    def __init__(self):
         super().__init__()
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         serverip = socket.gethostbyname(socket.gethostname())
-        self.sock.bind((serverip, int(serverport)))
+        self.sock.bind((serverip, 0))
         self.sock.listen(1)
         
     def run(self):
@@ -163,6 +154,9 @@ class Peer(AbstractPeer):
                 
     def send(self, text):
         self.conn.send(coding.encode(text))
+        
+    def getport(self):
+        return self.sock.getsockname()[1]
                 
         
 class PeerClient(AbstractPeer):

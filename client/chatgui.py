@@ -61,6 +61,7 @@ class ChatGui(AbstractChatGui):
         self.tabs = {}
         # map user_id to tab_id
         self.id_to_tab_id = {}
+        self.leftover = {}
         
     def create_text_display(self):
         tab = ChatDisplay(self.notebook, self.finishmsg)
@@ -89,7 +90,8 @@ class ChatGui(AbstractChatGui):
         add text for user_id
         '''
         if not user_id in self.id_to_tab_id:
-            self.addtab(user_id, show=False)
+            self.leftover[user_id] = text
+            return
         tab_id = self.id_to_tab_id[user_id]
         self.tabs[tab_id].add_text(text)
             

@@ -9,10 +9,13 @@ Functionality:
 Upon start, the client will automatically connect to server and display other client in the list box
 on the right. The list will get automatically updated when a client goes on-line or off-line, though
 do expect a 0.5 seconds delay.
-To chat with a particular peer, select one of them and click start chat button, the client will use
-TCP connection to connect with the peer selected by the user.
+
+Select one of them and click start chat button
 
 To chat with another peer, type characters in the bottom text box and press Ctrl-Enter to send the text.
+
+When a first peer sends the message to the second peer, the second peer needs to select the first peer,
+and click start chat button. Then both can type messages which will be received by each other
 
 ===============
 Note:
