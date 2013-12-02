@@ -86,6 +86,7 @@ class ConnectionManager(threading.Thread):
     
     def quitchat(self):
         self.tcppeers[self.active_dest].quit()
+        self.tcppeers.pop(self.active_dest)
         
     def setactivedest(self, destname):
         self.active_dest = destname
