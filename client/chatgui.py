@@ -94,7 +94,9 @@ class ChatGui(AbstractChatGui):
             return
         tab_id = self.id_to_tab_id[user_id]
         self.tabs[tab_id].add_text(text)
-            
+        
+    def closewin(self):
+        self.notebook.hide(self.notebook.select())
 
     def reformat(self):
         pass

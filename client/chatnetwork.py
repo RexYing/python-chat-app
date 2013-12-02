@@ -59,6 +59,7 @@ class ConnectionManager(threading.Thread):
         '''
         tcpclient = PeerClient(destip, destport, myname)
         self.tcppeers[self.active_dest] = tcpclient
+        print(self.active_dest)
         tcpclient.daemon = True
         tcpclient.start()
             
@@ -82,6 +83,9 @@ class ConnectionManager(threading.Thread):
         Send new messages that user typed in to a peer specified by its name
         '''
         self.tcppeers[self.active_dest].send(text)
+    
+    def quitchat(self):
+        self.tcppeers[self.active_dest].quit()
         
     def setactivedest(self, destname):
         self.active_dest = destname
@@ -127,6 +131,9 @@ class AbstractPeer(threading.Thread):
             except queue.Empty:
                 break;
         return msg
+    
+    def quit(self):
+        pass
             
 class Peer(AbstractPeer):
     '''
@@ -146,18 +153,27 @@ class Peer(AbstractPeer):
         while True:
             # once the connection is established, recv won't block
             # even if no message is received
-            msg = coding.decode(self.conn.recv(4096))
+            try:
+                msg = coding.decode(self.conn.recv(4096))
+            except:
+                self.sock.close()
+                return
             if len(msg) > 0:
                 self.recvmsgs.put(msg, block=True, timeout=5)
             else:
                 time.sleep(0.5)
                 
     def send(self, text):
-        self.conn.send(coding.encode(text))
+        try:
+            self.conn.send(coding.encode(text))
+        except:
+            return
         
     def getport(self):
         return self.sock.getsockname()[1]
-                
+    
+    def quit(self):
+        self.sock.close()
         
 class PeerClient(AbstractPeer):
     '''
@@ -181,15 +197,22 @@ class PeerClient(AbstractPeer):
         self.init_request()
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((self.destip, self.destport))
-        #self.send('whatsup:)')
         while True:
-            msg = coding.decode(self.sock.recv(4096))
+            try:
+                msg = coding.decode(self.sock.recv(4096))
+            except:
+                self.sock.close()
+                return
             if len(msg) > 0:
                 self.recvmsgs.put(msg, block=True, timeout=5)
             else:
                 time.sleep(0.5)
         
     def send(self, text):
-        self.sock.send(coding.encode(text))
+        try:
+            self.sock.send(coding.encode(text))
+        except:
+            return
         
-        
+    def quit(self):
+        self.sock.close()

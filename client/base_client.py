@@ -80,6 +80,9 @@ class ChatClient(threading.Thread):
         chat_button = ttk.Button(peer_frame, text='Start Chat!', command=self.request_chat)
         chat_button.grid(row=3)
         
+        close_button = ttk.Button(peer_frame, text='Close This Chat', command=self.quitchat)
+        close_button.grid(row=4)
+        
         update_thread = threading.Timer(1, self.update_peer)
         update_thread.daemon = True
         update_thread.start()
@@ -94,6 +97,11 @@ class ChatClient(threading.Thread):
             self.conn_manager.add_peer_client(self.name, ip, port)
         # add a tab for that guy
         self.chatgui.addtab(peerid, show=True)
+        
+    def quitchat(self):
+        self.chatgui.closewin()
+        self.conn_manager.sendmsg('Peer Disconnected')
+        self.conn_manager.quitchat()
         
     def draw_chat_frame(self):
         #chat_frame = ttk.Frame(self.root, bg = '#99CCFF')
