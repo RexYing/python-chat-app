@@ -58,7 +58,7 @@ class ChatGui(AbstractChatGui):
         self.notebook = ttk.Notebook(self.master)
         self.notebook.pack()
         # maps tab_id to ChatDisplay instance
-        self.tabs = {}
+        self.tab_id_to_display = {}
         # map user_id to tab_id
         self.id_to_tab_id = {}
         self.leftover = {}
@@ -69,8 +69,11 @@ class ChatGui(AbstractChatGui):
         # All text display windows (for different peers) 
         # are to be added into the notebook
         self.notebook.add(tab.getframe(), text='Welcome')
-        self.tabs[self.notebook.select()] = tab
+        self.tab_id_to_display[self.notebook.select()] = tab
         self.id_to_tab_id[0] = self.notebook.tabs()[self.notebook.index('end') - 1]
+        
+        # bind virtual event
+        self.notebook.bind('<<NotebookTabChanged>>', self.on_tab_selected)
         
     def addtab(self, user_id, show=False):
         '''
@@ -79,13 +82,13 @@ class ChatGui(AbstractChatGui):
         tab = ChatDisplay(self.notebook, self.finishmsg, user_id)
         self.notebook.add(tab.getframe(), text='User '+user_id)
         tab_id = self.notebook.tabs()[self.notebook.index('end') - 1]
-        self.tabs[tab_id] = tab
+        self.tab_id_to_display[tab_id] = tab
         self.id_to_tab_id[user_id] = tab_id
         if show:
             self.notebook.select(tab_id)
 
     def finishmsg(self, event):
-        textstr = self.tabs[self.notebook.select()].poll()
+        textstr = self.tab_id_to_display[self.notebook.select()].poll()
         self.client.sendmsg(textstr)
 
     def add_text(self, text, user_id=0):
@@ -96,13 +99,24 @@ class ChatGui(AbstractChatGui):
             self.leftover[user_id] = text
             return
         tab_id = self.id_to_tab_id[user_id]
-        self.tabs[tab_id].add_text(text)
+        self.tab_id_to_display[tab_id].add_text(text)
         
     def closewin(self):
         self.notebook.hide(self.notebook.select())
 
     def reformat(self):
         pass
+    
+    def on_right_click(self, event):
+        # right click on tab. currently not used
+        if event.widget.identify(event.x, event.y) == 'label':
+            index = event.widget.index('@%d,%d' % (event.x, event.y))
+            print(event.widget.tab(index, 'text'))
+            
+    def on_tab_selected(self, event):
+        user_id = self.tab_id_to_display[self.notebook.select()].getdestuser()
+        self.client.change_active_dest(user_id)
+        print('switch to user', user_id)
     
 class ChatDisplay(object):
     
@@ -130,6 +144,9 @@ class ChatDisplay(object):
         self.textinput.pack(side='bottom', fill='both', expand=True)
         scrollbar.pack(side='right', fill='y')
         self.text_display.pack(side='left', fill='both', expand=True)
+        
+    def getdestuser(self):
+        return self.dest_user
         
     def getframe(self):
         return self.display

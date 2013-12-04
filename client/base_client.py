@@ -94,14 +94,16 @@ class ChatClient(threading.Thread):
     def request_chat(self):
         items = [int(x) for x in self.peerlist.curselection()]
         peerid = self.peerlist.get(items[0])
-        self.conn_manager.setactivedest(peerid)
+        self.change_active_dest(peerid)
         if not peerid in self.conn_manager.tcppeers:
             # connect if not already connected
             ip, port = self.available_peers[peerid]
-            #print(ip, port)
             self.conn_manager.add_peer_client(self.name, ip, port)
         # add a tab for that guy
         self.chatgui.addtab(peerid, show=True)
+        
+    def change_active_dest(self, user_id):
+        self.conn_manager.setactivedest(user_id)
         
     def quitchat(self):
         self.chatgui.closewin()

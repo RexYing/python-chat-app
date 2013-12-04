@@ -40,7 +40,8 @@ receives the notification that the peer gets disconnected. The other peer would 
 to the other peer after that. The peer can choose to reconnect just by selecting that user and click "start 
 chat" again. Or the other peer too, can click "close this chat" to close the chat tab.
 Each TCP connection to peers, as well as connection to server are safely closed by closing the corresponding
-sockets, provided that the user does not force-close the program by Ctrl-alt-del or kill command.
+sockets, provided that the user does not force-close the program by Ctrl-alt-del, kill, Ctrl-C commands. If
+in Windows, close GUI instead of close command line to close the program.
 
 ACK and RTT calculation:
 RTT calculation results see the separate text file RTTResult
