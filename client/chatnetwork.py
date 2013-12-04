@@ -28,15 +28,16 @@ class ConnectionManager(threading.Thread):
         '''
         super().__init__()
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.ip = socket.gethostbyname(socket.gethostname())
+        #self.ip = socket.gethostbyname(socket.gethostname())
         # bind to a random serverport between 1024 and 65536 that is available
-        self.sock.bind((self.ip, 0))
+        self.sock.bind(('0.0.0.0', 0))
         self.port = self.sock.getsockname()[1]
-        self.sock.listen(10)
-        # client has to support new tab callback
+        self.sock.listen(5)
         self.client = client
+        print('my own: ', self.sock.getsockname()[0], self.port)
         
     def run(self):
+        print('p2p chat available')
         while True:
             conn, addr = self.sock.accept()
             name = coding.decode(conn.recv(1024))
@@ -87,6 +88,12 @@ class ConnectionManager(threading.Thread):
     def quitchat(self):
         self.tcppeers[self.active_dest].quit()
         self.tcppeers.pop(self.active_dest)
+        
+    def quitall(self):
+        print('p2p chat closed')
+        for peer in self.tcppeers:
+            self.tcppeers[peer].quit()
+        self.sock.close()
         
     def setactivedest(self, destname):
         self.active_dest = destname
@@ -172,8 +179,8 @@ class Peer(AbstractPeer):
     def __init__(self):
         super().__init__()
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        serverip = socket.gethostbyname(socket.gethostname())
-        self.sock.bind((serverip, 0))
+        #serverip = socket.gethostbyname(socket.gethostname())
+        self.sock.bind(('0.0.0.0', 0))
         self.sock.listen(1)
         
     def run(self):

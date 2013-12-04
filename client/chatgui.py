@@ -77,7 +77,7 @@ class ChatGui(AbstractChatGui):
         user_id: the id of the other peer that the user is chatting with
         '''
         tab = ChatDisplay(self.notebook, self.finishmsg, user_id)
-        self.notebook.add(tab.getframe(), text=user_id)
+        self.notebook.add(tab.getframe(), text='User '+user_id)
         tab_id = self.notebook.tabs()[self.notebook.index('end') - 1]
         self.tabs[tab_id] = tab
         self.id_to_tab_id[user_id] = tab_id

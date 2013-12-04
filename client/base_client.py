@@ -48,6 +48,10 @@ class ChatClient(threading.Thread):
         query_server_thread.start()
         
         self.startUI()
+        
+        #quit all
+        self.conn_manager.quitall()
+        self.sock.close()
     
     def startUI(self):
         '''
@@ -94,6 +98,7 @@ class ChatClient(threading.Thread):
         if not peerid in self.conn_manager.tcppeers:
             # connect if not already connected
             ip, port = self.available_peers[peerid]
+            print(ip, port)
             self.conn_manager.add_peer_client(self.name, ip, port)
         # add a tab for that guy
         self.chatgui.addtab(peerid, show=True)
