@@ -118,8 +118,13 @@ class ChatDisplay(object):
         
         # text input area
         self.textinput = tkinter.Text(self.display, width=35, height=10, wrap='word')
-        self.textinput.insert(tkinter.END, 'Please type')
         self.textinput.bind('<Control_L><Return>', callback)
+        if not dest_user:
+            # if no dest_user (Welcome window), disable textinput
+            self.textinput.insert(tkinter.END, 'Select a peer first')
+            self.textinput.config(state='disabled')
+        else:
+            self.textinput.insert(tkinter.END, 'Please type')
         
         # pack
         self.textinput.pack(side='bottom', fill='both', expand=True)

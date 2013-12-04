@@ -5,6 +5,7 @@ Both TCP and UDP are tested 100 times
 UDP RTT (from sending request message to receiving response from server): 0.108 s
 Variance: 0.046
 
+The TCP message is always a UTF-8 encoding of an ascii string containing 100 characters.
 TCP RTT (from sending request message to receiving ACK of the same message from another peer): 0.235 s
 Variance: 0.079
 

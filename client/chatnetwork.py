@@ -60,7 +60,6 @@ class ConnectionManager(threading.Thread):
         '''
         tcpclient = PeerClient(destip, destport, myname)
         self.tcppeers[self.active_dest] = tcpclient
-        print(self.active_dest)
         tcpclient.daemon = True
         tcpclient.start()
             
@@ -74,6 +73,7 @@ class ConnectionManager(threading.Thread):
         '''
         result = {}
         for name in self.tcppeers:
+            print(name, self.tcppeers[name].getport())
             msg = self.tcppeers[name].popmsg()
             if len(msg) > 0:
                 result[name] = msg
@@ -173,7 +173,7 @@ class AbstractPeer(threading.Thread):
             
 class Peer(AbstractPeer):
     '''
-    A TCP host specifically for chatting with one client
+    A TCP endpoint specifically for chatting with one client
     Each client can have multiple Peer instances running
     '''
     
@@ -186,6 +186,7 @@ class Peer(AbstractPeer):
         
     def run(self):
         self.conn, addr = self.sock.accept()
+        print(addr)
         while True:
             # once the connection is established, recv won't block
             # even if no message is received
@@ -205,6 +206,7 @@ class Peer(AbstractPeer):
             return
         
     def getport(self):
+        # get own socket
         return self.sock.getsockname()[1]
     
     def quit(self):
@@ -248,6 +250,10 @@ class PeerClient(AbstractPeer):
         except:
             # the other peer's socket closed
             return
+        
+    def getport(self):
+        # get destination port
+        return self.destport
         
     def quit(self):
         self.sock.close()

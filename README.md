@@ -23,7 +23,8 @@ line is used to display information such as RTT and ACK), change the extension f
 ===============
 Functionality:
 
-Upon start, the client will automatically connect to server and display other client in the list box
+Upon start, the client will need to enter its unique id number and click ok to enter the main GUI window.
+the client will automatically connect to server and display other client in the list box
 on the right. The list will get AUTOMATICALLY UPDATED when a client goes on-line or off-line, though
 do expect a little bit of delay.
 
@@ -37,7 +38,9 @@ and click start chat button. Then both can type messages which will be received 
 To close the chat, just press the "close this chat" button. The other peer that is chatting with this peer
 receives the notification that the peer gets disconnected. The other peer would not be able to send messages
 to the other peer after that. The peer can choose to reconnect just by selecting that user and click "start 
-chat" again.
+chat" again. Or the other peer too, can click "close this chat" to close the chat tab.
+Each TCP connection to peers, as well as connection to server are safely closed by closing the corresponding
+sockets, provided that the user does not force-close the program by Ctrl-alt-del or kill command.
 
 ACK and RTT calculation:
 RTT calculation results see the separate text file RTTResult
@@ -47,6 +50,19 @@ viewed there. Of course, if the client is started using .pyc extension, only GUI
 and RTT information are hidden from the user.
 
 ===============
+
+Bonus:
+
+1. RTT calculation, shown in the file RTTResult. Also the RTT information is displayed in command line of each
+client. Client connects to server periodically using UDP protocol. Each request will generate a new line of 
+RTT information. client chats with another peer using TCP protocol. Each time the user types in a message, and
+press Ctrl-Enter, the message is sent to the peer using TCP, and RTT of TCP is calculated.
+
+2. Multiple Chat Window Support. A client is able to connect to multiple other clients, and chat with them at 
+the same time. Each time a different peer is selected and "start chat" clicked, a new tab will pop up, and the 
+user is able to talk to that guy. It can also talk to the previous guy it was chatting with by switching the tab.
+
+===============
 Note:
 
 The file 'serverinfo' contains the ip and port of the server.
@@ -54,10 +70,12 @@ The file 'serverinfo' contains the ip and port of the server.
 ===============
 Implementation:
 
-The program is written in standard Python 3.3, using the default built-in GUI tool tkinter. On windows
-tkinter is automatically installed with Python3.3; on some Linux one will need to install manually
-(eg. sudo apt-get install python-tk). All network code is written using standard socket package.
+The program is written in standard Python 3.3, using the default built-in GUI tool tkinter. 
+All network code is written using standard socket package.
 
 The main thread is the GUI thread. A background thread communicates with the server at a fixed time interval
 to obtain a list of peer clients information. Another thread is running a TCP service that allows other 
 peers to connect with it.
+
+
+===============
