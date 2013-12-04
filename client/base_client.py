@@ -107,7 +107,7 @@ class ChatClient(threading.Thread):
         
     def quitchat(self):
         self.chatgui.closewin()
-        self.conn_manager.sendmsg('Peer Disconnected')
+        self.conn_manager.sendmsg('SYS Peer Disconnected')
         self.conn_manager.quitchat()
         
     def draw_chat_frame(self):

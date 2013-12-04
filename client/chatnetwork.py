@@ -73,7 +73,6 @@ class ConnectionManager(threading.Thread):
         '''
         result = {}
         for name in self.tcppeers:
-            print(name, self.tcppeers[name].getport())
             msg = self.tcppeers[name].popmsg()
             if len(msg) > 0:
                 result[name] = msg
@@ -202,6 +201,7 @@ class Peer(AbstractPeer):
             if not self.is_ack(text):
                 self.starttime = time.time()
             self.conn.send(coding.encode(text))
+            print('send from ', self.sock.getsockname()[1])
         except:
             return
         

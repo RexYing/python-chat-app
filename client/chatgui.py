@@ -150,15 +150,26 @@ class ChatDisplay(object):
         
     def getframe(self):
         return self.display
+    
+    def is_sysmsg(self, text):
+        # check if it is system message
+        try:
+            if text.index('SYS') == 0:
+                return True
+        except ValueError:
+            pass
+        return False
         
     def add_text(self, text, mine=False):
         text = text.strip(' \n')
         if self.dest_user:
-            if mine:
-                author = 'I said:'
+            if self.is_sysmsg(text):
+                author = ''
+            elif mine:
+                author = 'I said:\n'
             else:
-                author = self.dest_user + ' said:'
-            text = author + '\n' + text + '\n\n\n'
+                author = self.dest_user + ' said:\n'
+            text = author + text + '\n\n\n'
         else:
             # welcome messages do not have user_id
             text = text + '\n\n'
