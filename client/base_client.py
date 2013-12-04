@@ -116,6 +116,7 @@ class ChatClient(threading.Thread):
         self.chatgui.create_text_display()
         self.chatgui.add_text('Hello ' + self.name + '\n')
         
+        
         # set display manager which periodically update all messages received
         # from self.conn_manager to ChatGui instance
         dispmanager = chatnetwork.DisplayManager(self.conn_manager, self.chatgui)

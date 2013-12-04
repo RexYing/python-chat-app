@@ -159,6 +159,7 @@ class AbstractPeer(threading.Thread):
         if len(msg) > 0:
             # check if this is ACK first
             if self.is_ack(msg):
+                print('Acknowledgement received: ', msg)
                 print('TCP rtt:', self.get_rtt())
                 return
             self.recvmsgs.put(msg, block=True, timeout=5)
@@ -245,6 +246,7 @@ class PeerClient(AbstractPeer):
                 self.starttime = time.time()
             self.sock.send(coding.encode(text))
         except:
+            # the other peer's socket closed
             return
         
     def quit(self):
