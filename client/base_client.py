@@ -99,7 +99,7 @@ class ChatClient(threading.Thread):
             # connect if not already connected
             ip, port = self.available_peers[peerid]
             self.conn_manager.add_peer_client(self.name, ip, port)
-        # add a tab for that guy
+        # add a tab for that guy there isn't one already
         self.chatgui.addtab(peerid, show=True)
         
     def change_active_dest(self, user_id):

@@ -79,6 +79,12 @@ class ChatGui(AbstractChatGui):
         '''
         user_id: the id of the other peer that the user is chatting with
         '''
+        if user_id in self.id_to_tab_id:
+            # already existed but might be hidden
+            display = self.tab_id_to_display[self.id_to_tab_id[user_id]]
+            self.notebook.add(display.getframe())
+            return
+            
         tab = ChatDisplay(self.notebook, self.finishmsg, user_id)
         self.notebook.add(tab.getframe(), text='User '+user_id)
         tab_id = self.notebook.tabs()[self.notebook.index('end') - 1]
@@ -97,6 +103,8 @@ class ChatGui(AbstractChatGui):
         '''
         if not user_id in self.id_to_tab_id:
             self.leftover[user_id] = text
+            welcome_display = self.tab_id_to_display[self.id_to_tab_id[0]]
+            welcome_display.add_text(user_id + ' wants to chat with you:)\n\n')
             return
         tab_id = self.id_to_tab_id[user_id]
         self.tab_id_to_display[tab_id].add_text(text)

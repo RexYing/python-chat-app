@@ -1,7 +1,10 @@
 python-chat-app
 ===============
 
-Author: Rex
+Author: Rex (Zhitao) Ying
+
+email: zy26@duke.edu
+(email me if the program didn't work as specified by this Readme)
 
 ===============
 
@@ -9,12 +12,15 @@ Prerequisite:
 Python3.3. The standard package of python 3.3 will include the default GUI module tkinter. If not,
 download pythontk from apt-get or other distribution sites.
 
+The program has been tested on both Linux (Ubuntu 13.04 and 13.10) and Windows 7/8. On Mac, however, sometimes
+the tkinter.ttk is not installed, and may cause class not found problem.
+
 The serverinfo file SHOULD BE CONFIGURED BEFORE STARTING SERVER. Just enter server IP on the first line,
 and port on the second line following the simple format already written there.
 
 Start server by clicking main_server.py, or by running python main_server.py in command line.
 
-Then copy the code to the client machines. (no need if server and client are run in the same machine)
+Then copy the code to the client machines. (no need if server and client are running on the same machine)
 
 Start client by clicking main_client.py. If only wants GUI interface without command line (the command
 line is used to display information such as RTT and ACK), change the extension from .py to .pyc.
@@ -28,12 +34,17 @@ the client will automatically connect to server and display other client in the 
 on the right. The list will get AUTOMATICALLY UPDATED when a client goes on-line or off-line, though
 do expect a little bit of delay.
 
-Select one of them and click start chat button
+Select one of them and click start chat button to start chatting with that peer.
 
 To chat with another peer, type characters in the bottom text box and press Ctrl-Enter to send the text.
 
 Before the first peer sends the message to the second peer, the second peer needs to select the first peer,
-and click start chat button. Then both can type messages which will be received by each other.
+and click start chat button. Then both can type messages which will be received by each other. If one peer 
+clicks "start chat" button, but the other does not, then a message "peer XXX wants to chat with you!" message
+will appear on the welcome tab of the other peer.
+
+Although both peers have to click "start chat" in order to chat with each other, actually only 1 TCP 
+connection (duplex) is created. The button click for the second peer simply opens up the GUI chat window.
 
 To close the chat, just press the "close this chat" button. The other peer that is chatting with this peer
 receives the notification that the peer gets disconnected. The other peer would not be able to send messages
