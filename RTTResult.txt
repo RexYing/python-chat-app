@@ -2,13 +2,24 @@ The results are tested using 2 laptops connected to the Duke wireless network.
 The server is also running in the Duke wireless network.
 Both TCP and UDP are tested 100 times
 
-UDP RTT (from sending request message to receiving response from server): 0.108 s
-Variance: 0.046
+UDP RTT (from sending request message to receiving response from server): 0.058 s
+Variance: 0.026
 
 The TCP message is always a UTF-8 encoding of an ascii string containing 100 characters.
-TCP RTT (from sending request message to receiving ACK of the same message from another peer): 0.235 s
-Variance: 0.079
+TCP RTT (from sending request message to receiving ACK of the same message from another peer): 0.075 s
+Variance: 0.029
 
 TCP generally takes longer than UDP in terms of RTT. This can be justified by the extra work in TCP
 to ensure reliability of transfer, congestion control and flow control.
 
+
+However, this is not absolute:
+In some applications TCP is faster (better throughput) than UDP.
+
+This is the case when doing lots of small writes relative to the MTU size. For example, in an experiment in which a stream of 300 byte packets was being sent over Ethernet (1500 byte MTU) and TCP was 50% faster than UDP.
+
+The reason is because TCP will try and buffer the data and fill a full network segment thus making more efficient use of the available bandwidth.
+
+UDP on the other hand puts the packet on the wire immediately thus congesting the network with lots of small packets.
+
+Lots of optimization of TCP was involved in some OS
